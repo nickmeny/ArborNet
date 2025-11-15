@@ -5,6 +5,9 @@ import { Dimensions, StyleSheet, Text, View } from 'react-native';
 // NOTE: NavigationContainer was removed from this file as it is assumed to be provided by the root app.
 // --- 1. Type Definitions ---
 
+import AppNavigator from "./Navigation/AppNavigator";
+
+
 
 // Define the parameter list for our tab navigator screens
 // 'undefined' means the screen takes no parameters (props) when navigating
@@ -21,10 +24,10 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 const HomeScreen: React.FC = () => {
   return (
-    <View style={[styles.container, { backgroundColor: '#f0f4f8' }]}>
+    <><View style={[styles.container, { backgroundColor: '#f0f4f8' }]}>
       <Text style={styles.title}>ArborNet</Text>
       <Text style={styles.subtitle}>Your main dashboard is here.</Text>
-    </View>
+    </View><AppNavigator /></>
   );
 };
 
