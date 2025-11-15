@@ -137,4 +137,3 @@ const styles = StyleSheet.create({
 });
 
 export default App; // Ensure the main component is exported
-
