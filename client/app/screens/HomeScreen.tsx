@@ -5,11 +5,13 @@ import api from "../api/axiosConfig";
 interface Task {
   id: number | string; 
   title: string;
-  body: string; // <-- This is what fixes the 'body' error!
-  // Add any other properties (e.g., 'completed: boolean;')
+  body: string; 
+  location:string;
+  timestamp:string;
+  tokens:number;
+
+
 }
-
-
 
 
 export default function HomeScreen() {
@@ -17,7 +19,10 @@ const [tasks, setTasks] = useState<Task[]>([]);
 
   const fetchTasks = async () => {
     try {
-      const res = await api.post("/login");
+      const res = await api.post(
+        'http://172.29.84.3:5000/get',
+        {tasks},
+        { withCredentials: true });
       setTasks(res.data);
     } catch (error) {
       console.log("Error:", error);

@@ -25,7 +25,7 @@ export default function LoginScreen(): JSX.Element {
     try {
       // NOTE: Make sure 'api' is correctly configured or use the full URL as shown
       const res = await api.post(
-        'http://172.31.171.181:5000/login',
+        'http://172.29.84.3:5000/login',
         { email, password },
         { withCredentials: true }
       );
