@@ -13,6 +13,7 @@ class User(db.Model):
     password = db.Column(db.Text,nullable=False)
     username = db.Column(db.String(150),unique =True)
     tokens = db.Column(db.Integer, default = 0)
+    is_admin = db.Column(db.Boolean, default=False)
 
 
 class Tasks(db.Model):
@@ -26,5 +27,5 @@ class Tasks(db.Model):
     def __init__(self,title,body,location,tokens):
         self.title= title
         self.body = body
-        self.location - location
+        self.location =location
         self.tokens = tokens 
