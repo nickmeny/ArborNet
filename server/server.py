@@ -4,6 +4,8 @@ from flask_bcrypt import Bcrypt
 from datetime import datetime
 from flask_moment import Moment
 from flask_marshmallow import Marshmallow
+from marshmallow import fields,validate
+from functools import wraps
 #Initialize the app
 app = Flask(__name__)
 
@@ -24,11 +26,39 @@ with app.app_context():
 
 
 
+
+
 class TasksSchema(ma.Schema):
+    id = fields.Int(dump_only=True)
+    title = fields.Str(required=True, validate=validate.Length(min=1, max=100))
+    body = fields.Str(required=True)
+    location = fields.Str(required=True)
+    tokens = fields.Int()
+    timestamp = fields.DateTime(dump_only=True)
+    is_admin = fields.Bool(dump_only=True)
     class Meta:
-        fields = ('id', 'title', 'body', 'location','tokens','timestamp')
+        fields = ('id', 'title', 'body', 'location','tokens','timestamp','is_admin')
 
 tasks_schema = TasksSchema(many=True)
+task_schema = TasksSchema()
+
+
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        user = User.query.get(user_id)
+        if not user or not user.is_admin:
+            return jsonify({'error': 'Admin access required'}), 403
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 
 
 #signup route
@@ -47,7 +77,10 @@ def signup():
     #make the password hashed for more secure
     hased_password = bcrypt.generate_password_hash(password)
     #Define the new user in data base
-    new_user = User(email = email, password = hased_password, username = username)
+    if email == 'admin@gmail.com' and username == "admin" and password == "admin":
+        new_user = User(email = email, password = hased_password, username = username, is_admin = True)
+    else:
+        new_user = User(email = email, password = hased_password, username=username)
     db.session.add(new_user) #Adding user in db
     db.session.commit() #Commit the changes
 
@@ -98,13 +131,33 @@ def login():
 
 @app.route("/get",methods =['GET','POST'])
 def index():
-    tasks = Tasks.query.order_by(Tasks.timestamp.desc()).all
+    tasks = Tasks.query.order_by(Tasks.timestamp.desc()).all()
     if tasks is None:
         return jsonify({"error":"No available tasks"}),404
     results = tasks_schema.dump(tasks)
     return jsonify(results)
 
 
+@app.route("/create_tasks", methods = ['GET','POST'])
+@admin_required
+def create_tasks():
+    title = request.json['title']
+    body = request.json['body']
+    location = request.json['location']
+    tokens = request.json['tokens']
+    task = Tasks(title = title, body = body, location = location, tokens=tokens)    
+    db.session.add(task)
+    db.session.commit()
+    return jsonify({
+        "id":task.id,
+        "title": task.title,
+        "body":task.body,
+        "tokens":task.tokens,
+        "location":task.location,
+        "timestamp": task.timestamp
 
+
+    })
 if __name__ == '__main__':
     app.run(host = '0.0.0.0',port =5000, debug = True)
+
