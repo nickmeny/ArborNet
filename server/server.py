@@ -35,9 +35,9 @@ class TasksSchema(ma.Schema):
     location = fields.Str(required=True)
     tokens = fields.Int()
     timestamp = fields.DateTime(dump_only=True)
-
+    is_admin = fields.Bool(dump_only=True)
     class Meta:
-        fields = ('id', 'title', 'body', 'location','tokens','timestamp')
+        fields = ('id', 'title', 'body', 'location','tokens','timestamp','is_admin')
 
 tasks_schema = TasksSchema(many=True)
 task_schema = TasksSchema()
@@ -77,7 +77,10 @@ def signup():
     #make the password hashed for more secure
     hased_password = bcrypt.generate_password_hash(password)
     #Define the new user in data base
-    new_user = User(email = email, password = hased_password, username = username)
+    if email == 'admin@gmail.com' and username == "admin" and password == "admin":
+        new_user = User(email = email, password = hased_password, username = username, is_admin = True)
+    else:
+        new_user = User(email = email, password = hased_password, username=username)
     db.session.add(new_user) #Adding user in db
     db.session.commit() #Commit the changes
 
@@ -136,13 +139,25 @@ def index():
 
 
 @app.route("/create_tasks", methods = ['GET','POST'])
+@admin_required
 def create_tasks():
     title = request.json['title']
     body = request.json['body']
     location = request.json['location']
     tokens = request.json['tokens']
+    task = Tasks(title = title, body = body, location = location, tokens=tokens)    
+    db.session.add(task)
+    db.session.commit()
+    return jsonify({
+        "id":task.id,
+        "title": task.title,
+        "body":task.body,
+        "tokens":task.tokens,
+        "location":task.location,
+        "timestamp": task.timestamp
 
 
+    })
 if __name__ == '__main__':
     app.run(host = '0.0.0.0',port =5000, debug = True)
 
