@@ -6,7 +6,7 @@ const Stack = createStackNavigator();
 
 const RootNavigator = () => {
   return (
-    <NavigationContainer>
+
       <Stack.Navigator 
         // THIS IS THE FIX for the 'INDEX' header: Hides the header for all screens in the stack
         screenOptions={{ 
@@ -18,7 +18,7 @@ const RootNavigator = () => {
           component={App}
         />
       </Stack.Navigator>
-    </NavigationContainer>
+
   );
 };
 
