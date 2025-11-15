@@ -1,11 +1,20 @@
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React from 'react';
 import { Button, StyleSheet, Text, View } from 'react-native';
-import { RootStackParamList } from './types';
+import { useNavigation } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
+// Define the tab param list for this screen
+type TabParamList = {
+  Home: undefined;
+  Profile: undefined;
+  Prices: undefined;
+};
 
-export default function ProfileScreen({ navigation }: Props) {
+type ProfileScreenNavigationProp = BottomTabNavigationProp<TabParamList, 'Profile'>;
+
+export default function ProfileScreen() {
+  const navigation = useNavigation<ProfileScreenNavigationProp>();
+
   return (
     <View style={styles.container}>
       <Text style={styles.text}>This is the Profile Screen!</Text>

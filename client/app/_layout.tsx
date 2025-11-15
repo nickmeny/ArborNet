@@ -1,8 +1,7 @@
-import { Stack } from "expo-router";
+import React from 'react';
+import RootNavigator from './RootNavigation';
 
-<Stack.Screen options={{ title: "Home" }} />
-export default function RootLayout() {
-  return (
-    <Stack screenOptions={{ headerShown: false }} />
-  );
+function Layout() {
+  return <RootNavigator />;
 }
+export default Layout

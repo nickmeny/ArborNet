@@ -6,23 +6,21 @@ interface Task {
   id: number | string; 
   title: string;
   body: string; 
-  location:string;
-  timestamp:string;
-  tokens:number;
-
-
+  location: string;
+  timestamp: string;
+  tokens: number;
 }
 
-
 export default function HomeScreen() {
-const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
 
   const fetchTasks = async () => {
     try {
       const res = await api.post(
         'http://172.29.84.3:5000/get',
-        {tasks},
-        { withCredentials: true });
+        { tasks },
+        { withCredentials: true }
+      );
       setTasks(res.data);
     } catch (error) {
       console.log("Error:", error);
