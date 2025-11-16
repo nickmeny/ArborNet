@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import App from './index';
 import LoginScreen from './screens/LoginScreen';
-// import SignupScreen from './screens/SignupScreen';
+import SignupScreen from './screens/SignupScreen';
 import { View, Text, ActivityIndicator } from 'react-native';
 
 const Stack = createNativeStackNavigator();
@@ -51,14 +51,14 @@ const RootNavigator = () => {
               />
             )}
           </Stack.Screen>
-          {/* <Stack.Screen name="Signup">
+          <Stack.Screen name="Signup">
             {(props) => (
               <SignupScreen 
                 {...props} 
                 setIsAuthenticated={setIsAuthenticated} 
               />
             )}
-          </Stack.Screen> */}
+          </Stack.Screen>
         </>
       ) : (
         <Stack.Screen name="Main" component={App} />

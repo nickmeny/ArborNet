@@ -4,6 +4,8 @@ import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import HomeScreen from './screens/HomeScreen';
 import ProfileScreen from './screens/ProfileScreen';
 
+
+
 // Define tab types HERE
 type RootTabParamList = {
   Home: undefined;
@@ -13,11 +15,10 @@ type RootTabParamList = {
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-const PricesScreen: React.FC = () => {
+const TasksScreen: React.FC = () => {
   return (
     <View style={[styles.container, { backgroundColor: '#fbe9e7' }]}>
-      <Text style={styles.title}>Market Prices 📈</Text>
-      <Text style={styles.subtitle}>Check the latest figures and rates.</Text>
+      <Text style={styles.title}>Post A New Task 📈</Text>
     </View>
   );
 };
@@ -36,8 +37,8 @@ const App = () => {
       }}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: 'Dashboard' }} />
-      <Tab.Screen name="Prices" component={PricesScreen} options={{ title: 'Rates' }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Account' }} />
+      <Tab.Screen name="TasksScreen" component={TasksScreen} options = {{title: 'Adding Tasks'}} />
     </Tab.Navigator>
   );
 };

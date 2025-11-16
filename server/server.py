@@ -13,7 +13,7 @@ from flask_cors import CORS
 
 #Initialize the app
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins="*") 
+CORS(app, supports_credentials=True, origins=["*","exp://*"]) 
 
 #Configurations
 app.config['SECRET_KEY'] = "The Best Team Ever"
@@ -98,7 +98,7 @@ def signup():
     db.session.commit() #Commit the changes
 
     session['user_id'] = new_user.id #Cookies will keep the credentials for the user
-
+    session['is_admin'] = new_user.is_admin
     return jsonify({ #Return the user informations
         "id":new_user.id,
         "email": new_user.email,
