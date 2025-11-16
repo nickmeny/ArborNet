@@ -25,21 +25,21 @@ export default function HomeScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [likedTasks, setLikedTasks] = useState<Set<string | number>>(new Set());
   const [completedTasks, setCompletedTasks] = useState<Set<string | number>>(new Set(["recycle-1", "recycle-3"]));
-  const [userTokens, setUserTokens] = useState<number>(1550);
+  const [userTokens, setUserTokens] = useState<number>(10);
   const navigation = useNavigation<HomeScreenNavigationProp>();
   
-  const fetchTasks = async () => {
-    try {
-      const res = await api.post(
-        '/get',
-        { tasks },
-        { withCredentials: true }
-      );
-      setTasks(res.data);
-    } catch (error) {
-      console.log("Error:", error);
-    }
-  };
+  // const fetchTasks = async () => {
+  //   try {
+  //     const res = await api.post(
+  //       '/get',
+  //       { tasks },
+  //       { withCredentials: true }
+  //     );
+  //     setTasks(res.data);
+  //   } catch (error) {
+  //     console.log("Error:", error);
+  //   }
+  // };
 
   useEffect(() => {
     fetchTasks();
@@ -119,16 +119,16 @@ export default function HomeScreen() {
     {
       id: "recycle-1",
       title: "Plastic Bottle Recycling",
-      body: "Collect and recycle 10 plastic bottles from your neighborhood",
+      body: "Collect and recycle 15 plastic bottles from your neighborhood",
       location: "Local Recycling Center",
       timestamp: "All Day",
       tokens: 15
     },
     {
       id: "recycle-2",
-      title: "E-Waste Collection",
-      body: "Properly dispose of electronic waste at designated collection points",
-      location: "Community E-Waste Center",
+      title: "Vulture Tree Planting Day",
+      body: "Plant vulture trees in designated areas to support local wildlife",
+      location: "Community Park",
       timestamp: "9 AM - 5 PM",
       tokens: 25
     },
@@ -142,8 +142,8 @@ export default function HomeScreen() {
     },
     {
       id: "recycle-4",
-      title: "Paper Recycling Drive",
-      body: "Collect and recycle paper waste from offices",
+      title: "Clean our Oceans day",
+      body: "Collect and recycle paper waste from seas",
       location: "Business District",
       timestamp: "All Day",
       tokens: 20
@@ -240,7 +240,7 @@ export default function HomeScreen() {
           <View style={styles.topBar}>
             <View style={styles.userInfo}>
               <Text style={styles.profileIcon}>👤</Text>
-              <Text style={styles.username}>Alex Johnson</Text>
+              <Text style={styles.username}>Maria</Text>
             </View>
             <View style={styles.tokenInfo}>
               <Text style={styles.tokenIcon}>🪙</Text>

@@ -14,12 +14,11 @@ interface Reward {
 }
 
 const rewards: Reward[] = [
-    { id: 1, name: 'XP Boost (3x)', cost: 500, icon: '⚡', description: 'Triple your token earnings for 1 hour!' },
-    { id: 2, name: 'Exclusive Avatar Frame', cost: 1200, icon: '🖼️', description: 'Show off your elite status.' },
-    { id: 3, name: 'Mystery Loot Box', cost: 800, icon: '🎁', description: 'Contains a random item or bonus tokens.' },
-    { id: 4, name: 'Daily Task Refill', cost: 300, icon: '🔄', description: 'Instantly refresh all your available tasks.' },
-    { id: 5, name: 'The Golden Shovel', cost: 2500, icon: '🥇', description: 'A permanent 10% bonus to all future token income.' },
-    { id: 6, name: 'Rename Pass', cost: 750, icon: '🏷️', description: 'Change your username or title.' },
+    { id: 1, name: 'OASA 3 day card', cost: 300, icon: '', description: 'Free rides on public transport for 3 days' },
+    { id: 2, name: 'Athens Card Points', cost: 300, icon: '', description: 'Free Athens card points' },
+    { id: 3, name: '5% off for Cinema Tickets', cost: 500, icon: '', description: 'A discount on your next movie ticket purchase.' },
+    { id: 4, name: '1 free Scooter ride with lime', cost: 700, icon: '', description: ''},
+    { id: 5, name: '50% off for Uber Taxi', cost: 1000, icon: '', description: '50% off for one ride with a urban taxi' },
 ];
 // --- End of Fictional Data ---
 
