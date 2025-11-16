@@ -41,7 +41,7 @@ export default function SignupScreen({ setIsAuthenticated }: SignupScreenProps):
 
     try {
       const res = await api.post(
-        'http://172.29.84.3:5000/signup',
+        'http://172.31.171.181:5000/signup',
         { email, password, username },
         { withCredentials: true }
       );
