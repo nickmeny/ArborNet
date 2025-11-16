@@ -14,6 +14,8 @@ interface Task {
 export default function HomeScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [likedTasks, setLikedTasks] = useState<Set<string | number>>(new Set());
+  const [completedTasks, setCompletedTasks] = useState<Set<string | number>>(new Set());
+  const [userTokens, setUserTokens] = useState<number>(156); // Random starting tokens
   
   const fetchTasks = async () => {
     try {
@@ -45,6 +47,75 @@ export default function HomeScreen() {
     });
   };
 
+  const handleComplete = (taskId: string | number) => {
+    // Only allow completion for ACT AND WIN tasks that aren't already completed
+    if (taskId.toString().startsWith('recycle-') && !completedTasks.has(taskId)) {
+      setCompletedTasks(prev => {
+        const newCompleted = new Set(prev);
+        newCompleted.add(taskId);
+        return newCompleted;
+      });
+      
+      // Add tokens when completing ACT AND WIN tasks
+      const task = recyclingTasks.find(t => t.id === taskId);
+      if (task) {
+        setUserTokens(prev => prev + task.tokens);
+      }
+    }
+  };
+
+  // More tasks for Today's Tasks section
+  const additionalTasks: Task[] = [
+    {
+      id: "daily-1",
+      title: "Morning Coffee Run",
+      body: "Pick up coffee for the team meeting",
+      location: "Downtown Cafe",
+      timestamp: "9:00 AM",
+      tokens: 5
+    },
+    {
+      id: "daily-2",
+      title: "Document Review",
+      body: "Review and provide feedback on quarterly report",
+      location: "Office",
+      timestamp: "10:30 AM",
+      tokens: 15
+    },
+    {
+      id: "daily-3",
+      title: "Client Meeting",
+      body: "Weekly sync with client stakeholders",
+      location: "Conference Room B",
+      timestamp: "2:00 PM",
+      tokens: 25
+    },
+    {
+      id: "daily-4",
+      title: "Team Lunch",
+      body: "Organize team lunch for department",
+      location: "Main Restaurant",
+      timestamp: "12:30 PM",
+      tokens: 10
+    },
+    {
+      id: "daily-5",
+      title: "Code Review",
+      body: "Complete code review for new feature branch",
+      location: "Remote",
+      timestamp: "4:00 PM",
+      tokens: 20
+    },
+    {
+      id: "daily-6",
+      title: "Gym Session",
+      body: "Complete your daily workout routine",
+      location: "Fitness Center",
+      timestamp: "6:00 PM",
+      tokens: 8
+    }
+  ];
+
   // Recycling tasks for ACT AND WIN section
   const recyclingTasks: Task[] = [
     {
@@ -70,13 +141,34 @@ export default function HomeScreen() {
       location: "Central Park",
       timestamp: "10 AM - 12 PM",
       tokens: 30
+    },
+    {
+      id: "recycle-4",
+      title: "Paper Recycling Drive",
+      body: "Collect and recycle paper waste from offices",
+      location: "Business District",
+      timestamp: "All Day",
+      tokens: 20
     }
   ];
+
+  const allTasks = [...tasks, ...additionalTasks];
 
   return (
       <View style={styles.container}>
         {/* Header with Logo */}
         <View style={styles.header}>
+          <View style={styles.topBar}>
+            <View style={styles.userInfo}>
+              <Text style={styles.profileIcon}>👤</Text>
+              <Text style={styles.username}>Alex Johnson</Text>
+            </View>
+            <View style={styles.tokenInfo}>
+              <Text style={styles.tokenIcon}>🪙</Text>
+              <Text style={styles.tokenCount}>{userTokens}</Text>
+            </View>
+          </View>
+          
           <View style={styles.logoContainer}>
             <Text style={styles.logo}>
               <Text style={styles.logoArbor}>Arbor</Text>
@@ -89,7 +181,7 @@ export default function HomeScreen() {
         <ScrollView style={styles.scrollView}>
           {/* Today's Tasks Section */}
           <Text style={styles.sectionHeader}>Today's Tasks</Text>
-          {tasks.map(task => {
+          {allTasks.map(task => {
             const isLiked = likedTasks.has(task.id);
             
             return (
@@ -133,16 +225,35 @@ export default function HomeScreen() {
           <Text style={styles.mainHeader}>ACT AND WIN</Text>
           {recyclingTasks.map(task => {
             const isLiked = likedTasks.has(task.id);
+            const isCompleted = completedTasks.has(task.id);
             
             return (
-              <View key={task.id} style={styles.taskContainer}>
+              <View key={task.id} style={[
+                styles.taskContainer,
+                isCompleted && styles.completedTask
+              ]}>
                 <View style={styles.taskContent}>
-                  <Text style={styles.taskTitle}>{task.title}</Text>
-                  <Text style={styles.taskBody}>{task.body}</Text>
+                  <Text style={[
+                    styles.taskTitle,
+                    isCompleted && styles.completedText
+                  ]}>{task.title}</Text>
+                  <Text style={[
+                    styles.taskBody,
+                    isCompleted && styles.completedText
+                  ]}>{task.body}</Text>
                   <View style={styles.taskDetails}>
-                    <Text style={styles.taskInfo}>💰 {task.tokens} tokens</Text>
-                    <Text style={styles.taskInfo}>📍 {task.location}</Text>
-                    <Text style={styles.taskInfo}>🕐 {task.timestamp}</Text>
+                    <Text style={[
+                      styles.taskInfo,
+                      isCompleted && styles.completedText
+                    ]}>💰 {task.tokens} tokens</Text>
+                    <Text style={[
+                      styles.taskInfo,
+                      isCompleted && styles.completedText
+                    ]}>📍 {task.location}</Text>
+                    <Text style={[
+                      styles.taskInfo,
+                      isCompleted && styles.completedText
+                    ]}>🕐 {task.timestamp}</Text>
                   </View>
                 </View>
                 
@@ -151,20 +262,35 @@ export default function HomeScreen() {
                     style={[
                       styles.socialButton,
                       styles.likeButton,
-                      isLiked && styles.likedButton
+                      isLiked && styles.likedButton,
+                      isCompleted && styles.disabledButton
                     ]}
-                    onPress={() => handleLike(task.id)}
+                    onPress={() => !isCompleted && handleLike(task.id)}
+                    disabled={isCompleted}
                   >
                     <Text style={[
                       styles.socialButtonText,
-                      isLiked && styles.likedButtonText
+                      isLiked && styles.likedButtonText,
+                      isCompleted && styles.disabledText
                     ]}>
                       {isLiked ? '❤️' : '🤍'}
                     </Text>
                   </TouchableOpacity>
                   
-                  <TouchableOpacity style={[styles.socialButton, styles.shareButton]}>
-                    <Text style={styles.socialButtonText}>↗️</Text>
+                  <TouchableOpacity 
+                    style={[
+                      styles.completeButton,
+                      isCompleted && styles.completedTaskButton
+                    ]}
+                    onPress={() => handleComplete(task.id)}
+                    disabled={isCompleted}
+                  >
+                    <Text style={[
+                      styles.completeButtonText,
+                      isCompleted && styles.completedButtonText
+                    ]}>
+                      {isCompleted ? '✅ Done' : 'Mark Done'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -194,6 +320,43 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+  userInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileIcon: {
+    fontSize: 20,
+    marginRight: 8,
+  },
+  username: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  tokenInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f8ff',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  tokenIcon: {
+    fontSize: 16,
+    marginRight: 4,
+  },
+  tokenCount: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#1976D2',
   },
   logoContainer: {
     alignItems: 'center',
@@ -250,6 +413,10 @@ const styles = StyleSheet.create({
     elevation: 2,
     alignItems: 'center',
   },
+  completedTask: {
+    backgroundColor: '#f5f5f5',
+    opacity: 0.7,
+  },
   taskContent: {
     flex: 1,
   },
@@ -264,6 +431,10 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 8,
     lineHeight: 18,
+  },
+  completedText: {
+    textDecorationLine: 'line-through',
+    color: '#999',
   },
   taskDetails: {
     flexDirection: 'row',
@@ -297,10 +468,35 @@ const styles = StyleSheet.create({
   shareButton: {
     backgroundColor: '#f8f9fa',
   },
+  disabledButton: {
+    backgroundColor: '#e0e0e0',
+  },
   socialButtonText: {
     fontSize: 16,
   },
   likedButtonText: {
     color: '#e91e63',
+  },
+  disabledText: {
+    color: '#999',
+  },
+  completeButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  completedTaskButton: {
+    backgroundColor: '#81C784',
+  },
+  completeButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  completedButtonText: {
+    color: '#fff',
   },
 });
