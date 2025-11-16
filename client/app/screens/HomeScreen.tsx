@@ -41,9 +41,9 @@ export default function HomeScreen() {
   //   }
   // };
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
+  // useEffect(() => {
+  //   fetchTasks();
+  // }, []);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -117,7 +117,7 @@ export default function HomeScreen() {
 
   const recyclingTasks: Task[] = [
     {
-      id: "recycle-1",
+      id: "recycle-2",
       title: "Plastic Bottle Recycling",
       body: "Collect and recycle 15 plastic bottles from your neighborhood",
       location: "Local Recycling Center",
@@ -125,7 +125,7 @@ export default function HomeScreen() {
       tokens: 15
     },
     {
-      id: "recycle-2",
+      id: "recycle-1",
       title: "Vulture Tree Planting Day",
       body: "Plant vulture trees in designated areas to support local wildlife",
       location: "Community Park",
