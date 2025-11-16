@@ -27,7 +27,7 @@ export default function LoginScreen({ setIsAuthenticated }: LoginScreenProps): J
   const handleLogin = async () => {
     try {
       const res = await api.post(
-        'http://172.31.171.181:5000/login',
+        '/login',
         { email, password },
         { withCredentials: true }
       );
