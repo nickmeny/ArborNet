@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Text, View, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import { Text, View, ScrollView, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { SafeAreaView } from "react-native-safe-area-context";
 import api from "../api/axiosConfig";
+
+type RootStackParamList = {
+  HomeScreen: undefined;
+  VerificationScreen: { task: Task; onTaskComplete: (taskId: string | number) => void };
+};
+
+type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'HomeScreen'>;
 
 interface Task {
   id: number | string; 
@@ -14,8 +24,9 @@ interface Task {
 export default function HomeScreen() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [likedTasks, setLikedTasks] = useState<Set<string | number>>(new Set());
-  const [completedTasks, setCompletedTasks] = useState<Set<string | number>>(new Set());
-  const [userTokens, setUserTokens] = useState<number>(156); // Random starting tokens
+  const [completedTasks, setCompletedTasks] = useState<Set<string | number>>(new Set(["recycle-1", "recycle-3"]));
+  const [userTokens, setUserTokens] = useState<number>(1550);
+  const navigation = useNavigation<HomeScreenNavigationProp>();
   
   const fetchTasks = async () => {
     try {
@@ -31,9 +42,14 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    console.log()
     fetchTasks();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log("HomeScreen focused - current completed tasks:", Array.from(completedTasks));
+    }, [completedTasks])
+  );
   
   const handleLike = (taskId: string | number) => {
     setLikedTasks(prev => {
@@ -47,24 +63,39 @@ export default function HomeScreen() {
     });
   };
 
-  const handleComplete = (taskId: string | number) => {
-    // Only allow completion for ACT AND WIN tasks that aren't already completed
-    if (taskId.toString().startsWith('recycle-') && !completedTasks.has(taskId)) {
-      setCompletedTasks(prev => {
-        const newCompleted = new Set(prev);
-        newCompleted.add(taskId);
-        return newCompleted;
-      });
-      
-      // Add tokens when completing ACT AND WIN tasks
-      const task = recyclingTasks.find(t => t.id === taskId);
-      if (task) {
-        setUserTokens(prev => prev + task.tokens);
-      }
+  const handleTaskComplete = (taskId: string | number) => {
+    console.log("handleTaskComplete called with:", taskId);
+    
+    setCompletedTasks(prev => {
+      const newCompleted = new Set(prev);
+      newCompleted.add(taskId);
+      console.log("Updated completed tasks:", Array.from(newCompleted));
+      return newCompleted;
+    });
+    
+    const allAvailableTasks = [...recyclingTasks, ...additionalTasks, ...tasks];
+    const completedTask = allAvailableTasks.find(t => t.id === taskId);
+    if (completedTask) {
+      const newTokens = userTokens + completedTask.tokens;
+      setUserTokens(newTokens);
+      console.log(`Added ${completedTask.tokens} tokens. Total: ${newTokens}`);
     }
   };
 
-  // More tasks for Today's Tasks section
+  const handleTaskPress = (task: Task) => {
+    if (completedTasks.has(task.id)) {
+      console.log("Task already completed:", task.id);
+      return;
+    }
+    
+    console.log("Navigating to VerificationScreen with task:", task.id);
+    
+    navigation.navigate('VerificationScreen', { 
+      task,
+      onTaskComplete: handleTaskComplete
+    });
+  };
+
   const additionalTasks: Task[] = [
     {
       id: "daily-1",
@@ -81,42 +112,9 @@ export default function HomeScreen() {
       location: "Office",
       timestamp: "10:30 AM",
       tokens: 15
-    },
-    {
-      id: "daily-3",
-      title: "Client Meeting",
-      body: "Weekly sync with client stakeholders",
-      location: "Conference Room B",
-      timestamp: "2:00 PM",
-      tokens: 25
-    },
-    {
-      id: "daily-4",
-      title: "Team Lunch",
-      body: "Organize team lunch for department",
-      location: "Main Restaurant",
-      timestamp: "12:30 PM",
-      tokens: 10
-    },
-    {
-      id: "daily-5",
-      title: "Code Review",
-      body: "Complete code review for new feature branch",
-      location: "Remote",
-      timestamp: "4:00 PM",
-      tokens: 20
-    },
-    {
-      id: "daily-6",
-      title: "Gym Session",
-      body: "Complete your daily workout routine",
-      location: "Fitness Center",
-      timestamp: "6:00 PM",
-      tokens: 8
     }
   ];
 
-  // Recycling tasks for ACT AND WIN section
   const recyclingTasks: Task[] = [
     {
       id: "recycle-1",
@@ -154,7 +152,88 @@ export default function HomeScreen() {
 
   const allTasks = [...tasks, ...additionalTasks];
 
+  const renderTaskContainer = (task: Task, index: number, isLiked: boolean, isCompleted: boolean) => {
+    const taskContent = (
+      <>
+        <Text style={[
+          styles.taskNumber,
+          isCompleted && styles.completedText
+        ]}>{index + 1})</Text>
+        <View style={styles.taskContent}>
+          <Text style={[
+            styles.taskTitle,
+            isCompleted && styles.completedText
+          ]}>{task.title}</Text>
+          <Text style={[
+            styles.taskBody,
+            isCompleted && styles.completedText
+          ]}>{task.body}</Text>
+          <View style={styles.taskDetails}>
+            <Text style={[
+              styles.taskInfo,
+              isCompleted && styles.completedText
+            ]}>💰 {task.tokens} tokens</Text>
+            <Text style={[
+              styles.taskInfo,
+              isCompleted && styles.completedText
+            ]}>📍 {task.location}</Text>
+            <Text style={[
+              styles.taskInfo,
+              isCompleted && styles.completedText
+            ]}>🕐 {task.timestamp}</Text>
+          </View>
+        </View>
+        
+        <View style={styles.actionButtons}>
+          <TouchableOpacity 
+            style={[
+              styles.socialButton,
+              styles.likeButton,
+              isLiked && styles.likedButton,
+              isCompleted && styles.disabledButton
+            ]}
+            onPress={() => !isCompleted && handleLike(task.id)}
+            disabled={isCompleted}
+          >
+            <Text style={[
+              styles.socialButtonText,
+              isLiked && styles.likedButtonText,
+              isCompleted && styles.disabledText
+            ]}>
+              {isLiked ? '❤️' : '🤍'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </>
+    );
+
+    if (isCompleted) {
+      return (
+        <View 
+          key={task.id} 
+          style={[
+            styles.taskContainer,
+            styles.completedTask
+          ]}
+        >
+          {taskContent}
+        </View>
+      );
+    } else {
+      return (
+        <TouchableOpacity 
+          key={task.id} 
+          style={styles.taskContainer}
+          onPress={() => handleTaskPress(task)}
+        >
+          {taskContent}
+        </TouchableOpacity>
+      );
+    }
+  };
+
   return (
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         {/* Header with Logo */}
         <View style={styles.header}>
@@ -181,145 +260,43 @@ export default function HomeScreen() {
         <ScrollView style={styles.scrollView}>
           {/* Today's Tasks Section */}
           <Text style={styles.sectionHeader}>Today's Tasks</Text>
-          {allTasks.map(task => {
+          {allTasks.map((task, index) => {
             const isLiked = likedTasks.has(task.id);
-            
-            return (
-              <View key={task.id} style={styles.taskContainer}>
-                <View style={styles.taskContent}>
-                  <Text style={styles.taskTitle}>{task.title}</Text>
-                  <Text style={styles.taskBody}>{task.body}</Text>
-                  <View style={styles.taskDetails}>
-                    <Text style={styles.taskInfo}>💰 {task.tokens} tokens</Text>
-                    <Text style={styles.taskInfo}>📍 {task.location}</Text>
-                    <Text style={styles.taskInfo}>🕐 {task.timestamp}</Text>
-                  </View>
-                </View>
-                
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity 
-                    style={[
-                      styles.socialButton,
-                      styles.likeButton,
-                      isLiked && styles.likedButton
-                    ]}
-                    onPress={() => handleLike(task.id)}
-                  >
-                    <Text style={[
-                      styles.socialButtonText,
-                      isLiked && styles.likedButtonText
-                    ]}>
-                      {isLiked ? '❤️' : '🤍'}
-                    </Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity style={[styles.socialButton, styles.shareButton]}>
-                    <Text style={styles.socialButtonText}>↗️</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            );
+            const isCompleted = completedTasks.has(task.id);
+            return renderTaskContainer(task, index, isLiked, isCompleted);
           })}
 
           {/* ACT AND WIN Section */}
           <Text style={styles.mainHeader}>ACT AND WIN</Text>
-          {recyclingTasks.map(task => {
+          {recyclingTasks.map((task, index) => {
             const isLiked = likedTasks.has(task.id);
             const isCompleted = completedTasks.has(task.id);
-            
-            return (
-              <View key={task.id} style={[
-                styles.taskContainer,
-                isCompleted && styles.completedTask
-              ]}>
-                <View style={styles.taskContent}>
-                  <Text style={[
-                    styles.taskTitle,
-                    isCompleted && styles.completedText
-                  ]}>{task.title}</Text>
-                  <Text style={[
-                    styles.taskBody,
-                    isCompleted && styles.completedText
-                  ]}>{task.body}</Text>
-                  <View style={styles.taskDetails}>
-                    <Text style={[
-                      styles.taskInfo,
-                      isCompleted && styles.completedText
-                    ]}>💰 {task.tokens} tokens</Text>
-                    <Text style={[
-                      styles.taskInfo,
-                      isCompleted && styles.completedText
-                    ]}>📍 {task.location}</Text>
-                    <Text style={[
-                      styles.taskInfo,
-                      isCompleted && styles.completedText
-                    ]}>🕐 {task.timestamp}</Text>
-                  </View>
-                </View>
-                
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity 
-                    style={[
-                      styles.socialButton,
-                      styles.likeButton,
-                      isLiked && styles.likedButton,
-                      isCompleted && styles.disabledButton
-                    ]}
-                    onPress={() => !isCompleted && handleLike(task.id)}
-                    disabled={isCompleted}
-                  >
-                    <Text style={[
-                      styles.socialButtonText,
-                      isLiked && styles.likedButtonText,
-                      isCompleted && styles.disabledText
-                    ]}>
-                      {isLiked ? '❤️' : '🤍'}
-                    </Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                    style={[
-                      styles.completeButton,
-                      isCompleted && styles.completedTaskButton
-                    ]}
-                    onPress={() => handleComplete(task.id)}
-                    disabled={isCompleted}
-                  >
-                    <Text style={[
-                      styles.completeButtonText,
-                      isCompleted && styles.completedButtonText
-                    ]}>
-                      {isCompleted ? '✅ Done' : 'Mark Done'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            );
+            return renderTaskContainer(task, index, isLiked, isCompleted);
           })}
         </ScrollView>
       </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#1E2B4E',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#e8f5e8', // Light pastel green background
+    backgroundColor: '#1E2B4E',
   },
   scrollView: {
     flex: 1,
   },
   header: {
-    backgroundColor: '#ffffff',
-    paddingTop: 50,
+    backgroundColor: '#2C3E50',
+    paddingTop: 20,
     paddingBottom: 15,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    borderBottomWidth: 3,
+    borderBottomColor: '#3498DB',
   },
   topBar: {
     flexDirection: 'row',
@@ -335,16 +312,17 @@ const styles = StyleSheet.create({
   profileIcon: {
     fontSize: 20,
     marginRight: 8,
+    color: '#ECF0F1',
   },
   username: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#ECF0F1',
   },
   tokenInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0f8ff',
+    backgroundColor: '#F39C12',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -356,7 +334,7 @@ const styles = StyleSheet.create({
   tokenCount: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#1976D2',
+    color: '#2C3E50',
   },
   logoContainer: {
     alignItems: 'center',
@@ -368,14 +346,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   logoArbor: {
-    color: '#2E7D32', // Green color for Arbor
+    color: '#2ECC71',
   },
   logoNet: {
-    color: '#1976D2', // Blue color for Net
+    color: '#3498DB',
   },
   tagline: {
     fontSize: 14,
-    color: '#666',
+    color: '#BDC3C7',
     marginTop: 4,
     fontStyle: 'italic',
   },
@@ -385,9 +363,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 20,
     marginTop: 30,
-    color: '#2E7D32',
+    color: '#3498DB',
     textTransform: 'uppercase',
     letterSpacing: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
   sectionHeader: {
     fontSize: 24,
@@ -395,26 +376,37 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 15,
     marginTop: 20,
-    color: '#1a1a1a',
+    color: '#ECF0F1',
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
   taskContainer: {
     flexDirection: 'row',
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    backgroundColor: '#fff',
+    borderBottomColor: '#34495E',
+    backgroundColor: '#2C3E50',
     marginHorizontal: 10,
     marginBottom: 8,
     borderRadius: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-    alignItems: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 6,
+    borderLeftWidth: 5,
+    borderLeftColor: '#E74C3C',
+  },
+  taskNumber: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#3498DB',
+    marginRight: 10,
+    width: 25,
   },
   completedTask: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#34495E',
     opacity: 0.7,
   },
   taskContent: {
@@ -424,17 +416,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
-    color: '#1a1a1a',
+    color: '#ECF0F1',
   },
   taskBody: {
     fontSize: 14,
-    color: '#666',
+    color: '#BDC3C7',
     marginBottom: 8,
     lineHeight: 18,
   },
   completedText: {
     textDecorationLine: 'line-through',
-    color: '#999',
+    color: '#95A5A6',
   },
   taskDetails: {
     flexDirection: 'row',
@@ -442,14 +434,13 @@ const styles = StyleSheet.create({
   },
   taskInfo: {
     fontSize: 12,
-    color: '#888',
+    color: '#BDC3C7',
     marginRight: 12,
     marginBottom: 2,
   },
   actionButtons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   socialButton: {
     width: 36,
@@ -457,46 +448,24 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#34495E',
   },
   likeButton: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#34495E',
   },
   likedButton: {
-    backgroundColor: '#ffebee',
-  },
-  shareButton: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#E74C3C',
   },
   disabledButton: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#2C3E50',
   },
   socialButtonText: {
     fontSize: 16,
   },
   likedButtonText: {
-    color: '#e91e63',
+    color: '#E74C3C',
   },
   disabledText: {
-    color: '#999',
-  },
-  completeButton: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    minWidth: 80,
-    alignItems: 'center',
-  },
-  completedTaskButton: {
-    backgroundColor: '#81C784',
-  },
-  completeButtonText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  completedButtonText: {
-    color: '#fff',
+    color: '#7F8C8D',
   },
 });
