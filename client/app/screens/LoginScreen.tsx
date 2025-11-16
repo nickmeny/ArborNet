@@ -35,7 +35,7 @@ export default function LoginScreen({ setIsAuthenticated }: LoginScreenProps): J
       Alert.alert("Success", `Logged in as ${res.data.email}`);
       
       if (res.data.token) {
-        await AsyncStorage.setItem('userToken', res.data.token);
+        await AsyncStorage.setItem('userToken', res.data.tokens);
       }
       
       if (setIsAuthenticated) {
