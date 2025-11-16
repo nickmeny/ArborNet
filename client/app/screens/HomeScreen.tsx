@@ -17,7 +17,7 @@ export default function HomeScreen() {
   const fetchTasks = async () => {
     try {
       const res = await api.post(
-        'http://172.29.84.3:5000/get',
+        'http://172.31.171.181:5000/get',
         { tasks },
         { withCredentials: true }
       );
